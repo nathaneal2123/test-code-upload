@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.HopperSubsystem;
 import frc.robot.subsystems.Intake;
 
@@ -38,6 +39,8 @@ public class RobotContainer {
 
     private final HopperSubsystem hopper = new HopperSubsystem();
 
+    public final Feeder feeder = new Feeder();
+
     private final CommandXboxController joystick = new CommandXboxController(0);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
@@ -57,14 +60,17 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-
-        joystick.rightBumper().whileTrue(intake.intakeCommand());
+        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+            .onTrue(intake.homingCommand());
+        
+        joystick.rightTrigger().whileTrue(intake.intakeCommand());
 
         // Run the agitate sequence while holding the Right Trigger
-        joystick.rightTrigger().whileTrue(intake.agitateCommand());
+        joystick.rightBumper().whileTrue(intake.agitateCommand());
         
-        // Home the intake (reset position) on a single press of the d-pad up button
-        joystick.povUp().onTrue(intake.homingCommand());
+        // stows the intake on a single press of the d-pad up button
+        joystick.povUp()
+            .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
         
         // === HOPPER CHANGES START ===
         // Run the hopper forward while holding the X button

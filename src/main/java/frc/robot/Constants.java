@@ -31,6 +31,9 @@ public final class Constants {
     }
     // Hopper subsystem CAN IDs start at 40
     public static class HopperConstants {
-    public static final int kHopperMotorId = 40;
+    public static final int kHopperMotorId = 40; // <-- change to your actual CAN ID
+    }
+    public static class FeederConstants {
+    public static final int kFeederMotorId = 41; // <-- change to your actual CAN ID
     }
 }

@@ -17,6 +17,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 // Correct 2026 REVLib Imports
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkRelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder; // Changed from RelativeEncoder
 import com.revrobotics.spark.SparkClosedLoopController; // Changed from SparkPIDController
