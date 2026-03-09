@@ -11,5 +11,7 @@ public final class Ports {
     // Talon FX IDs
     public static final int kIntakePivot = 31;
     public static final int kIntakeRollers = 32;
+    public static final int kHopperMotor = 40;
+    public static final int kFeederMotor = 41;
 
 }
