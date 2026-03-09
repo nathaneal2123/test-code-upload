@@ -20,7 +20,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.HopperSubsystem;
-import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.IntakeSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -35,7 +35,7 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    public final Intake intake = new Intake();
+    public final IntakeSubsystem intake = new IntakeSubsystem();
 
     private final HopperSubsystem hopper = new HopperSubsystem();
 
@@ -60,21 +60,28 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
+        
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
-            .onTrue(intake.homingCommand());
-        
-        joystick.rightTrigger().whileTrue(intake.intakeCommand());
+            .onTrue(intake.rezero());
+        // Updated Intake & Feeder Binding: Deploy and run both while holding Right Trigger
+        joystick.rightTrigger().whileTrue(
+            intake.deployAndRollCommand().alongWith(feeder.forwardCommand())
+        );
 
-        // Run the agitate sequence while holding the Right Trigger
-        joystick.rightBumper().whileTrue(intake.agitateCommand());
+        // Eject/Reverse on Right Bumper
+        joystick.rightBumper().whileTrue(intake.ejectCommand());
+
+        // Rezero pivot on POV Up
+        joystick.povUp().onTrue(intake.rezero());
+
+        // Hopper & Feeder Forward on X button
+        joystick.x().whileTrue(
+            hopper.feedCommand().alongWith(feeder.forwardCommand())
+        );
+
+        // Reverse for unjamming on POV Down
+        joystick.povDown().whileTrue(feeder.reverseCommand());
         
-        // stows the intake on a single press of the d-pad up button
-        joystick.povUp()
-            .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
-        
-        // === HOPPER CHANGES START ===
-        // Run the hopper forward while holding the X button
-        joystick.x().whileTrue(hopper.feedCommand()); //
 
         // Run the hopper in reverse while holding the Left Trigger
         joystick.leftTrigger().whileTrue(hopper.reverseCommand()); //
