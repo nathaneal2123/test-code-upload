@@ -5,6 +5,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Degrees;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -118,9 +119,12 @@ public class RobotContainer {
     
     private Command shootSequence() {
         return Commands.sequence(
-            // Step 1: Spin up and wait until at speed
-            shooter.spinUpAndWaitCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM),
-            // Step 2: Keep shooter running and start feeding
+            // Move intake to feed position while spinning up
+            Commands.parallel(
+                intake.setPivotAngle(Degrees.of(59)),
+                shooter.spinUpAndWaitCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM)
+            ),
+            // Keep shooter running and start feeding
             Commands.parallel(
                 shooter.shootBothCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM),
                 hopper.feedCommand(),

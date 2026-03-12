@@ -95,7 +95,7 @@ public class IntakeSubsystem extends SubsystemBase {
   }
   
   public Command stowCommand() {
-    return Commands.runOnce(this::setIntakeStow, this).withName("Intake.Stow");
+    return Commands.runOnce(this::setIntakeStow, this).withName("Intake.Stow"); 
   }
 
   public Command deployAndRollCommand() {
