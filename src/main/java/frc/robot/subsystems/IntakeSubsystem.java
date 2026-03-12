@@ -93,6 +93,10 @@ public class IntakeSubsystem extends SubsystemBase {
   public Command rezero() {
     return Commands.runOnce(() -> pivotMotor.getEncoder().setPosition(0), this).withName("IntakePivot.Rezero");
   }
+  
+  public Command stowCommand() {
+    return Commands.runOnce(this::setIntakeStow, this).withName("Intake.Stow");
+  }
 
   public Command deployAndRollCommand() {
     return Commands.run(() -> {
@@ -104,10 +108,10 @@ public class IntakeSubsystem extends SubsystemBase {
     }).withName("Intake.DeployAndRoll");
   }
 
-  private void setIntakeStow() { intakePivotController.setPosition(Degrees.of(0)); }
-  private void setIntakeFeed() { intakePivotController.setPosition(Degrees.of(59)); }
-  private void setIntakeHold() { intakePivotController.setPosition(Degrees.of(115)); }
-  private void setIntakeDeployed() { intakePivotController.setPosition(Degrees.of(148)); }
+  private void setIntakeStow()     { intakePivot.setAngle(Degrees.of(0));   }
+  private void setIntakeFeed()     { intakePivot.setAngle(Degrees.of(59));  }
+  private void setIntakeHold()     { intakePivot.setAngle(Degrees.of(115)); }
+  private void setIntakeDeployed() { intakePivot.setAngle(Degrees.of(148)); }
 
   @Override
   public void periodic() {

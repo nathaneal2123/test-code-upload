@@ -21,6 +21,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.HopperSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -38,6 +39,8 @@ public class RobotContainer {
     public final IntakeSubsystem intake = new IntakeSubsystem();
 
     private final HopperSubsystem hopper = new HopperSubsystem();
+
+    public final ShooterSubsystem shooter = new ShooterSubsystem();
 
     public final Feeder feeder = new Feeder();
 
@@ -64,9 +67,7 @@ public class RobotContainer {
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
             .onTrue(intake.rezero());
         // Updated Intake & Feeder Binding: Deploy and run both while holding Right Trigger
-        joystick.rightTrigger().whileTrue(
-            intake.deployAndRollCommand().alongWith(feeder.forwardCommand())
-        );
+        joystick.rightTrigger().whileTrue(intake.deployAndRollCommand());
 
         // Eject/Reverse on Right Bumper
         joystick.rightBumper().whileTrue(intake.ejectCommand());
@@ -74,19 +75,22 @@ public class RobotContainer {
         // Rezero pivot on POV Up
         joystick.povUp().onTrue(intake.rezero());
 
-        // Hopper & Feeder Forward on X button
+        // POV Down - Stow intake
+        joystick.povDown().onTrue(intake.stowCommand());
+
+        // Hold X - Hopper + feeder forward
         joystick.x().whileTrue(
             hopper.feedCommand().alongWith(feeder.forwardCommand())
         );
-
-        // Reverse for unjamming on POV Down
-        joystick.povDown().whileTrue(feeder.reverseCommand());
         
+        // Hold Left Trigger - Shoot sequence
+        joystick.leftTrigger().whileTrue(shootSequence());
 
-        // Run the hopper in reverse while holding the Left Trigger
-        joystick.leftTrigger().whileTrue(hopper.reverseCommand()); //
-        // === HOPPER CHANGES END ===
-
+        // Hold Y - Hopper + feeder reverse together
+        joystick.y().whileTrue(
+            hopper.reverseCommand().alongWith(feeder.reverseCommand())
+        );
+                
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -110,6 +114,21 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+    }
+    
+    private Command shootSequence() {
+        return Commands.sequence(
+            // Step 1: Spin up and wait until at speed
+            shooter.spinUpAndWaitCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM),
+            // Step 2: Keep shooter running and start feeding
+            Commands.parallel(
+                shooter.shootBothCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM),
+                hopper.feedCommand(),
+                feeder.forwardCommand()
+            )
+        )
+        .finallyDo(() -> {})
+        .withName("ShootSequence");
     }
 
     public Command getAutonomousCommand() {

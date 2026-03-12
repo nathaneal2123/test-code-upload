@@ -36,4 +36,16 @@ public final class Constants {
     public static class FeederConstants {
     public static final int kFeederMotorId = 41; // <-- change to your actual CAN ID
     }
+    public static class ShooterConstants {
+        public static final int kLeftMotorId  = 50; // change to actual CAN ID
+        public static final int kRightMotorId = 51; // change to actual CAN ID
+
+        // Tuning — adjust these on the actual robot
+        public static final double kDefaultShootRPM = 3000;
+        public static final double kRPMTolerance     = 100;
+        public static final double kP                = 0.0006;
+        public static final double kI                = 0;
+        public static final double kD                = 0;
+        public static final double kStatorCurrentLimit = 40;
+    }
 }
