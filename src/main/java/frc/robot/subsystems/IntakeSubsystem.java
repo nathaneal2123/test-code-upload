@@ -95,24 +95,20 @@ public class IntakeSubsystem extends SubsystemBase {
   }
   
   public Command stowCommand() {
-    return Commands.runOnce(this::setIntakeStow, this).withName("Intake.Stow"); 
+    return setPivotAngle(Degrees.of(0)).withName("Intake.Stow");
   }
 
   public Command deployAndRollCommand() {
-    return Commands.run(() -> {
-      setIntakeDeployed();
-      rollerSMC.setDutyCycle(INTAKE_SPEED);
-    }, this).finallyDo(() -> {
-      rollerSMC.setDutyCycle(0);
-      setIntakeHold();
-    }).withName("Intake.DeployAndRoll");
+    return Commands.sequence(
+        setPivotAngle(Degrees.of(148)),
+        Commands.run(() -> rollerSMC.setDutyCycle(INTAKE_SPEED), this)
+            .finallyDo(() -> {
+                rollerSMC.setDutyCycle(0);
+                setPivotAngle(Degrees.of(115)).schedule();
+            })
+    ).withName("Intake.DeployAndRoll");
   }
-
-  private void setIntakeStow()     { intakePivot.setAngle(Degrees.of(0));   }
-  private void setIntakeFeed()     { intakePivot.setAngle(Degrees.of(59));  }
-  private void setIntakeHold()     { intakePivot.setAngle(Degrees.of(115)); }
-  private void setIntakeDeployed() { intakePivot.setAngle(Degrees.of(148)); }
-
+  
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
