@@ -9,8 +9,16 @@ import static edu.wpi.first.units.Units.Degrees;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -49,8 +57,40 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
+    private final SendableChooser<Command> autoChooser = new SendableChooser<>();
+
     public RobotContainer() {
+        configurePathPlanner();
         configureBindings();
+        configureAutoChooser();
+    }
+
+    private void configurePathPlanner() {
+        try {
+            AutoBuilder.configure(
+                () -> drivetrain.getState().Pose,
+                drivetrain::resetPose,
+                () -> drivetrain.getState().Speeds,
+                (speeds, feedforwards) -> drivetrain.setControl(
+                    new SwerveRequest.ApplyRobotSpeeds().withSpeeds(speeds)
+                ),
+                new PPHolonomicDriveController(
+                    new PIDConstants(10, 0, 0),   // translation
+                    new PIDConstants(7, 0, 0)     // rotation
+                ),
+                RobotConfig.fromGUISettings(),
+                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+                drivetrain
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to configure PathPlanner AutoBuilder: " + e.getMessage());
+        }
+    }
+
+    private void configureAutoChooser() {
+        autoChooser.setDefaultOption("New Auto", AutoBuilder.buildAuto("New Auto"));
+        autoChooser.addOption("Not Human Shooter Side", AutoBuilder.buildAuto("not human shooter side"));
+        SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
     private void configureBindings() {
@@ -64,9 +104,10 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-        
+
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
             .onTrue(intake.rezero());
+
         // Updated Intake & Feeder Binding: Deploy and run both while holding Right Trigger
         joystick.rightTrigger().whileTrue(intake.deployAndRollCommand());
 
@@ -83,7 +124,7 @@ public class RobotContainer {
         joystick.x().whileTrue(
             hopper.feedCommand().alongWith(feeder.forwardCommand())
         );
-        
+
         // Hold Left Trigger - Shoot sequence
         joystick.leftTrigger().whileTrue(shootSequence());
 
@@ -91,7 +132,7 @@ public class RobotContainer {
         joystick.y().whileTrue(
             hopper.reverseCommand().alongWith(feeder.reverseCommand())
         );
-                
+
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -116,7 +157,7 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
-    
+
     private Command shootSequence() {
         return Commands.sequence(
             // Move intake to feed position while spinning up
@@ -136,21 +177,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        // Simple drive forward auton
-        final var idle = new SwerveRequest.Idle();
-        return Commands.sequence(
-            // Reset our field centric heading to match the robot
-            // facing away from our alliance station wall (0 deg).
-            drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
-            // Then slowly drive forward (away from us) for 5 seconds.
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(0.5)
-                    .withVelocityY(0)
-                    .withRotationalRate(0)
-            )
-            .withTimeout(5.0),
-            // Finally idle for the rest of auton
-            drivetrain.applyRequest(() -> idle)
-        );
+        return autoChooser.getSelected();
     }
 }

@@ -29,7 +29,7 @@ public class IntakeSubsystem extends SubsystemBase {
   private static final double INTAKE_SPEED = 0.8;
 
   // --- ROLLER: Kraken X60 (TalonFX) with direct motor-to-pulley control ---
-  private TalonFX rollerKraken = new TalonFX(Ports.kIntakeRollers, Ports.kCANivoreCANBus);
+  private TalonFX rollerKraken = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
 
   private SmartMotorControllerConfig rollerConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.OPEN_LOOP)
@@ -46,7 +46,6 @@ public class IntakeSubsystem extends SubsystemBase {
   private SmartMotorControllerConfig intakePivotSmartMotorConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
       .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
-      .withFeedforward(new SimpleMotorFeedforward(0, 2.5, 0))
       .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
       // Gearing: 100:1 Gearbox * (30/12) Sprocket Ratio = 250:1
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(100, 30.0 / 12.0)))
@@ -108,7 +107,7 @@ public class IntakeSubsystem extends SubsystemBase {
             })
     ).withName("Intake.DeployAndRoll");
   }
-  
+
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
