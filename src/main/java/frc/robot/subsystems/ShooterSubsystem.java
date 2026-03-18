@@ -45,10 +45,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final SmartMotorController leftSMC = new SparkWrapper(
         leftMotor, DCMotor.getNEO(1), leftSMCConfig);
 
-    private final FlyWheel leftLauncher = new FlyWheel(
-        new FlyWheelConfig(leftSMC)
-            .withDiameter(Inches.of(4))
-            .withTelemetry("LeftLauncher", TelemetryVerbosity.HIGH));
+    private FlyWheel leftLauncher;
 
     // --- RIGHT SHOOTER ---
     private final SparkMax rightMotor = new SparkMax(
@@ -69,12 +66,21 @@ public class ShooterSubsystem extends SubsystemBase {
     private final SmartMotorController rightSMC = new SparkWrapper(
         rightMotor, DCMotor.getNEO(1), rightSMCConfig);
 
-    private final FlyWheel rightLauncher = new FlyWheel(
-        new FlyWheelConfig(rightSMC)
-            .withDiameter(Inches.of(4))
-            .withTelemetry("RightLauncher", TelemetryVerbosity.HIGH));
+    private FlyWheel rightLauncher;
 
-    public ShooterSubsystem() {}
+    public ShooterSubsystem() {
+        leftLauncher = new FlyWheel(
+            new FlyWheelConfig(leftSMC)
+                .withDiameter(Inches.of(4))
+                .withMass(Pounds.of(0.5))
+                .withTelemetry("LeftLauncher", TelemetryVerbosity.HIGH));
+
+        rightLauncher = new FlyWheel(
+            new FlyWheelConfig(rightSMC)
+                .withDiameter(Inches.of(4))
+                .withMass(Pounds.of(0.5))
+                .withTelemetry("RightLauncher", TelemetryVerbosity.HIGH));
+    }
 
     /** Returns true when both shooters are at target speed */
     public boolean atSpeed(double targetRPM) {
@@ -96,8 +102,8 @@ public class ShooterSubsystem extends SubsystemBase {
     /** Spin up and wait until both are at speed */
     public Command spinUpAndWaitCommand(double targetRPM) {
         return Commands.parallel(
-            leftLauncher.runTo(RPM.of(targetRPM), RPM_TOLERANCE),
-            rightLauncher.runTo(RPM.of(targetRPM), RPM_TOLERANCE)
+            leftLauncher.runTo(RPM.of(targetRPM), RPM_TOLERANCE).asProxy(),
+            rightLauncher.runTo(RPM.of(targetRPM), RPM_TOLERANCE).asProxy()
         ).withName("Shooter.SpinUpAndWait");
     }
 

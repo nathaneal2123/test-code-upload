@@ -5,7 +5,6 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.units.Units.Degrees;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -132,6 +131,12 @@ public class RobotContainer {
         joystick.y().whileTrue(
             hopper.reverseCommand().alongWith(feeder.reverseCommand())
         );
+        
+        // POV Left - Spin up shooter
+        joystick.povLeft().whileTrue(shooter.shootBothCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM));
+
+        // POV Right - Intake roller
+        joystick.povRight().whileTrue(intake.intakeCommand());
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.

@@ -46,9 +46,10 @@ public class HopperSubsystem extends SubsystemBase {
       .withLowerSoftLimit(RPM.of(-6000))
       .withTelemetry("Hopper", TelemetryVerbosity.HIGH);
 
-  private FlyWheel hopper = new FlyWheel(hopperConfig);
+  private FlyWheel hopper;
 
   public HopperSubsystem() {
+    hopper = new FlyWheel(hopperConfig);
   }
 
   /**
