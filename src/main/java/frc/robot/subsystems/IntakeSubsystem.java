@@ -50,7 +50,7 @@ public class IntakeSubsystem extends SubsystemBase {
   // --- PIVOT: Updated for NEO V1.1 and 250:1 Gearing ---
   private SmartMotorControllerConfig intakePivotSmartMotorConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
-      .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
+      .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(20000), DegreesPerSecondPerSecond.of(20000))
       .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
       // Gearing: 100:1 Gearbox * (30/12) Sprocket Ratio = 250:1
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(100, 30.0 / 12.0)))
