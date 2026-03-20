@@ -91,14 +91,14 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /** Spin both launchers at the given RPM, stop when command ends */
     public Command shootBothCommand(double targetRPM) {
-        return run(() -> {
-            leftMotor.set(0.5);
-            rightMotor.set(0.5);
-        }).finallyDo(() -> {
-            leftMotor.set(0);
-            rightMotor.set(0);
-        }).withName("Shooter.ShootBoth");
-    }
+    return run(() -> {
+        leftSMC.setVelocity(RPM.of(targetRPM));
+        rightSMC.setVelocity(RPM.of(targetRPM));
+    }).finallyDo(() -> {
+        leftSMC.setDutyCycle(-0.9);
+        rightSMC.setDutyCycle(-0.9);
+    }).withName("Shooter.ShootBoth");
+}
 
     /** Spin up and wait until both are at speed */
     public Command spinUpAndWaitCommand(double targetRPM) {
@@ -116,14 +116,14 @@ public class ShooterSubsystem extends SubsystemBase {
     /** Fire just the left launcher */
     public Command shootLeftCommand(double targetRPM) {
         return run(() -> leftSMC.setVelocity(RPM.of(targetRPM)))
-            .finallyDo(() -> leftSMC.setDutyCycle(0))
+            .finallyDo(() -> leftSMC.setDutyCycle(-0.6))
             .withName("Shooter.ShootLeft");
     }
 
     /** Fire just the right launcher */
     public Command shootRightCommand(double targetRPM) {
         return run(() -> rightSMC.setVelocity(RPM.of(targetRPM)))
-            .finallyDo(() -> rightSMC.setDutyCycle(0))
+            .finallyDo(() -> rightSMC.setDutyCycle(-0.6))
             .withName("Shooter.ShootRight");
     }
 

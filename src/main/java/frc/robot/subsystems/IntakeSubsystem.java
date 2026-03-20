@@ -4,15 +4,10 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -39,7 +34,7 @@ public class IntakeSubsystem extends SubsystemBase {
   private SmartMotorControllerConfig rollerConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.OPEN_LOOP)
       .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH)
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(1)))
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(1))) 
       .withMotorInverted(true)
       .withIdleMode(MotorMode.COAST)
       .withStatorCurrentLimit(Amps.of(40));
@@ -50,7 +45,7 @@ public class IntakeSubsystem extends SubsystemBase {
   // --- PIVOT: Updated for NEO V1.1 and 250:1 Gearing ---
   private SmartMotorControllerConfig intakePivotSmartMotorConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
-      .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(20000), DegreesPerSecondPerSecond.of(20000))
+      .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
       .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
       // Gearing: 100:1 Gearbox * (30/12) Sprocket Ratio = 250:1
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(100, 30.0 / 12.0)))
@@ -72,21 +67,12 @@ public class IntakeSubsystem extends SubsystemBase {
       .withHardLimit(Degrees.of(0), Degrees.of(155))
       .withStartingPosition(Degrees.of(0))
       .withLength(Feet.of(1))
-      .withMass(Pounds.of(2))
+      .withMass(Pounds.of(2)) 
       .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
 
   private Arm intakePivot = new Arm(intakePivotConfig);
 
-  // --- Mechanism2d for visualization ---
-  private final Mechanism2d intakeMech = new Mechanism2d(3, 3);
-  private final MechanismRoot2d intakeRoot = intakeMech.getRoot("IntakeRoot", 1.5, 0.5);
-  private final MechanismLigament2d intakeArm = intakeRoot.append(
-      new MechanismLigament2d("IntakeArm", 1, 0, 6, new Color8Bit(Color.kOrange))
-  );
-
-  public IntakeSubsystem() {
-    SmartDashboard.putData("Intake", intakeMech);
-  }
+  public IntakeSubsystem() {}
 
   /** Commands now control the roller motor controller directly */
   public Command intakeCommand() {
@@ -106,7 +92,7 @@ public class IntakeSubsystem extends SubsystemBase {
   public Command rezero() {
     return Commands.runOnce(() -> pivotMotor.getEncoder().setPosition(0), this).withName("IntakePivot.Rezero");
   }
-
+  
   public Command stowCommand() {
     return setPivotAngle(Degrees.of(0)).withName("Intake.Stow");
   }
@@ -125,12 +111,10 @@ public class IntakeSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
-    intakeArm.setAngle(intakePivotController.getMechanismPosition().in(Degrees));
-    SmartDashboard.putNumber("Intake Roller DutyCycle", rollerKraken.getDutyCycle().getValueAsDouble());
   }
 
   @Override
   public void simulationPeriodic() {
     intakePivot.simIterate();
   }
-} 
+}
