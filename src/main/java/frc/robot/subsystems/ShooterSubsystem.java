@@ -48,6 +48,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private FlyWheel leftLauncher;
 
+    private double m_targetRPM = 0;
+
     // --- RIGHT SHOOTER ---
     private final SparkMax rightMotor = new SparkMax(
         Constants.ShooterConstants.kRightMotorId, MotorType.kBrushless);
@@ -92,9 +94,11 @@ public class ShooterSubsystem extends SubsystemBase {
     /** Spin both launchers at the given RPM, stop when command ends */
     public Command shootBothCommand(double targetRPM) {
         return run(() -> {
+            m_targetRPM = targetRPM;
             leftSMC.setVelocity(RPM.of(targetRPM));
             rightSMC.setVelocity(RPM.of(targetRPM));
         }).finallyDo(() -> {
+            m_targetRPM = 0;
             leftSMC.setDutyCycle(0);
             rightSMC.setDutyCycle(0);
         })
@@ -109,6 +113,7 @@ public class ShooterSubsystem extends SubsystemBase {
             rightLauncher.runTo(RPM.of(targetRPM), RPM_TOLERANCE).asProxy()
         ).andThen(
             run(() -> {
+                m_targetRPM = targetRPM;
                 leftSMC.setVelocity(RPM.of(targetRPM));
                 rightSMC.setVelocity(RPM.of(targetRPM));
             })
@@ -132,6 +137,7 @@ public class ShooterSubsystem extends SubsystemBase {
     /** Stop both shooters */
     public Command stopCommand() {
         return runOnce(() -> {
+            m_targetRPM = 0;
             leftSMC.setDutyCycle(0);
             rightSMC.setDutyCycle(0);
         }).withName("Shooter.Stop");
@@ -143,6 +149,8 @@ public class ShooterSubsystem extends SubsystemBase {
         rightLauncher.updateTelemetry();
         SmartDashboard.putNumber("Shooter Left RPM", leftSMC.getRotorVelocity().in(RPM));
         SmartDashboard.putNumber("Shooter Right RPM", rightSMC.getRotorVelocity().in(RPM));
+        SmartDashboard.putNumber("Shooter Target RPM", m_targetRPM);
+        SmartDashboard.putBoolean("Shooter Ready", m_targetRPM != 0 && atSpeed(m_targetRPM));
     }
 
     @Override

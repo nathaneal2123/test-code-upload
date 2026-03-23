@@ -7,6 +7,8 @@ package frc.robot;
 import com.ctre.phoenix6.HootAutoReplay;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -33,6 +35,8 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
         SmartDashboard.putBoolean("IsEnabled", DriverStation.isEnabled());
         SmartDashboard.putBoolean("IsAutonomous", DriverStation.isAutonomous());
+        SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
+        SmartDashboard.putBoolean("Is Red Alliance", DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red);
     }
 
     @Override

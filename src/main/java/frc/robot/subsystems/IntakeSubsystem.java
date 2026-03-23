@@ -114,6 +114,7 @@ public class IntakeSubsystem extends SubsystemBase {
     intakePivot.updateTelemetry();
     SmartDashboard.putNumber("Intake Pivot Angle", intakePivotController.getMechanismPosition().in(Degrees));
     SmartDashboard.putNumber("Intake Roller DutyCycle", rollerKraken.getDutyCycle().getValueAsDouble());
+    SmartDashboard.putBoolean("Intake Deployed", intakePivotController.getMechanismPosition().in(Degrees) > 90.0);
   }
 
 
