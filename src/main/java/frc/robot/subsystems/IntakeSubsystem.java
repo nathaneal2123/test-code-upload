@@ -8,6 +8,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -111,7 +112,10 @@ public class IntakeSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
+    SmartDashboard.putNumber("Intake Pivot Angle", intakePivotController.getMechanismPosition().in(Degrees));
+    SmartDashboard.putNumber("Intake Roller DutyCycle", rollerKraken.getDutyCycle().getValueAsDouble());
   }
+
 
   @Override
   public void simulationPeriodic() {
