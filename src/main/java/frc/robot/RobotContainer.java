@@ -12,6 +12,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -65,6 +67,25 @@ public class RobotContainer {
     }
 
     private void configurePathPlanner() {
+        // Register named commands for PathPlanner event markers and autos
+        // Use .asProxy() so named commands don't add their subsystem requirements
+        // to the auto's SequentialCommandGroup (which would cause conflicts)
+        NamedCommands.registerCommand("deployIntake", intake.deployAndRollCommand().asProxy());
+        NamedCommands.registerCommand("stowIntake", intake.stowCommand().withTimeout(1.5).asProxy());
+        NamedCommands.registerCommand("spinUpShooter",
+            shooter.shootBothCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM).asProxy());
+        NamedCommands.registerCommand("shoot",
+            hopper.feedCommand().alongWith(feeder.forwardCommand()).asProxy());
+        NamedCommands.registerCommand("stopAll",
+            shooter.stopCommand()
+                .alongWith(intake.stowCommand().withTimeout(1.5))
+                .alongWith(hopper.stopCommand())
+                .alongWith(feeder.stopCommand()).asProxy());
+        NamedCommands.registerCommand("shootSequence", shootSequence().asProxy());
+
+        // Bind EventTrigger for path event markers (fires when robot reaches marker during path)
+        new EventTrigger("deployIntake").onTrue(intake.deployAndRollCommand());
+
         try {
             AutoBuilder.configure(
                 () -> drivetrain.getState().Pose,
@@ -87,8 +108,17 @@ public class RobotContainer {
     }
 
     private void configureAutoChooser() {
-        autoChooser.setDefaultOption("New Auto", AutoBuilder.buildAuto("New Auto"));
-        autoChooser.addOption("Not Human Shooter Side", AutoBuilder.buildAuto("not human shooter side"));
+        try {
+            autoChooser.setDefaultOption("New Auto", AutoBuilder.buildAuto("New Auto"));
+            autoChooser.addOption("Not Human Shooter Side", AutoBuilder.buildAuto("not human shooter side"));
+            autoChooser.addOption("Trench 1", AutoBuilder.buildAuto("Trench1 Auto"));
+            autoChooser.addOption("Trench 2", AutoBuilder.buildAuto("Trench2 Auto"));
+            autoChooser.addOption("Bump 1", AutoBuilder.buildAuto("Bump1 Auto"));
+            autoChooser.addOption("Bump 2", AutoBuilder.buildAuto("Bump2 Auto"));
+        } catch (Exception e) {
+            System.err.println("Failed to build an auto: " + e.getMessage());
+            e.printStackTrace();
+        }
         SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
@@ -104,7 +134,7 @@ public class RobotContainer {
             )
         );
 
-        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+        RobotModeTriggers.teleop()
             .onTrue(intake.rezero());
 
         // Updated Intake & Feeder Binding: Deploy and run both while holding Right Trigger

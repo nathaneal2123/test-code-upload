@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/natha/**)",
+      "Read(//c/Users/Public/wpilib/**)",
+      "Bash(JAVA_HOME=\"C:/Users/Public/wpilib/2026/jdk\" ./gradlew build)",
+      "Bash(JAVA_HOME=\"C:/Users/Public/wpilib/2026/jdk\" ./gradlew simulateJava)",
+      "Bash(find C:/Users/natha/Downloads/code-frc-main -name PathplannerLib*.jar -o -name pathplannerlib*.jar)",
+      "Bash(find C:/Users/natha/.gradle -name *pathplanner* -type f)",
+      "Bash(find C:/Users/natha/.gradle/caches -iname *pathplanner* -type f)"
+    ]
+  }
+}

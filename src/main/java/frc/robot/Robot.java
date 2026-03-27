@@ -53,12 +53,21 @@ public class Robot extends TimedRobot {
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
         if (m_autonomousCommand != null) {
+            System.out.println("AUTO: Scheduling command: " + m_autonomousCommand.getName());
+            System.out.println("AUTO: Requirements: " + m_autonomousCommand.getRequirements());
             CommandScheduler.getInstance().schedule(m_autonomousCommand);
+        } else {
+            System.out.println("AUTO: Command is NULL - no auto selected!");
         }
     }
 
     @Override
-    public void autonomousPeriodic() {}
+    public void autonomousPeriodic() {
+        if (m_autonomousCommand != null && !m_autonomousCommand.isScheduled()) {
+            System.out.println("AUTO: Command is no longer scheduled! It was cancelled or finished.");
+            m_autonomousCommand = null; // Only print once
+        }
+    }
 
     @Override
     public void autonomousExit() {}
