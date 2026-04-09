@@ -123,14 +123,14 @@ public class ShooterSubsystem extends SubsystemBase {
     /** Fire just the left launcher */
     public Command shootLeftCommand(double targetRPM) {
         return run(() -> leftSMC.setVelocity(RPM.of(targetRPM)))
-            .finallyDo(() -> leftSMC.setDutyCycle(-1))
+            .finallyDo(() -> leftSMC.setDutyCycle(0))
             .withName("Shooter.ShootLeft");
     }
 
     /** Fire just the right launcher */
     public Command shootRightCommand(double targetRPM) {
         return run(() -> rightSMC.setVelocity(RPM.of(targetRPM)))
-            .finallyDo(() -> rightSMC.setDutyCycle(-1))
+            .finallyDo(() -> rightSMC.setDutyCycle(0))
             .withName("Shooter.ShootRight");
     }
 

@@ -25,7 +25,7 @@ import yams.motorcontrollers.local.SparkWrapper;
 
 public class HopperSubsystem extends SubsystemBase {
 
-  private static final double HOPPER_SPEED = 0.7;
+  private static final double HOPPER_SPEED = 1;
 
   // Nova motor controller with NEO motor
   private SparkMax hopperSpark = new SparkMax(Constants.HopperConstants.kHopperMotorId, MotorType.kBrushless);
@@ -59,6 +59,12 @@ public class HopperSubsystem extends SubsystemBase {
     return hopper.set(HOPPER_SPEED).finallyDo(() -> smc.setDutyCycle(0)).withName("Hopper.Feed");
   }
 
+  /** Pulses the hopper to prevent two balls jamming simultaneously */
+  public Command pulsedFeedCommand() {
+    return runEnd(() -> smc.setDutyCycle(HOPPER_SPEED), () -> smc.setDutyCycle(0))
+        .withName("Hopper.PulsedFeed");
+  }
+
   /**
    * Command to run the hopper in reverse while held.
    */
@@ -77,6 +83,7 @@ public class HopperSubsystem extends SubsystemBase {
   public void periodic() {
     hopper.updateTelemetry();
     SmartDashboard.putNumber("Hopper DutyCycle", hopperSpark.get());
+    SmartDashboard.putNumber("Hopper Current", hopperSpark.getOutputCurrent());
   }
 
   @Override

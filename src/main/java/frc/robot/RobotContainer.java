@@ -15,7 +15,6 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.events.EventTrigger;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -42,7 +41,6 @@ public class RobotContainer {
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -75,7 +73,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("spinUpShooter",
             shooter.shootBothCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM).asProxy());
         NamedCommands.registerCommand("shoot",
-            hopper.feedCommand().alongWith(feeder.forwardCommand()).asProxy());
+            hopper.pulsedFeedCommand().alongWith(feeder.forwardCommand()).asProxy());
         NamedCommands.registerCommand("stopAll",
             shooter.stopCommand()
                 .alongWith(intake.stowCommand().withTimeout(1.5))
@@ -137,27 +135,24 @@ public class RobotContainer {
         RobotModeTriggers.teleop()
             .onTrue(intake.rezero());
 
-        // Updated Intake & Feeder Binding: Deploy and run both while holding Right Trigger
+        // Right Trigger - Pivot down while held
         joystick.rightTrigger().whileTrue(intake.deployAndRollCommand());
 
         // Eject/Reverse on Right Bumper
         joystick.rightBumper().whileTrue(intake.ejectCommand());
 
-        // Rezero pivot on POV Up
-        joystick.povUp().onTrue(intake.rezero());
+        // POV Up - Pivot up while held
+        joystick.povUp().whileTrue(intake.pivotUpCommand());
 
-        // POV Down - Stow intake
-        joystick.povDown().onTrue(intake.stowCommand());
+        // POV Down - Pivot up while held
+        joystick.povDown().onTrue(intake.pivotMidCommand());
 
         // Hold X - Hopper + feeder forward
         joystick.x().whileTrue(
-            hopper.feedCommand().alongWith(feeder.forwardCommand())
+            hopper.pulsedFeedCommand().alongWith(feeder.forwardCommand())
         );
         // POV Left - Spin shooters
         joystick.povLeft().whileTrue(shooter.shootBothCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM));
-
-        // POV Right - Intake roller only
-        joystick.povRight().whileTrue(intake.intakeCommand());
 
         // Hold Left Trigger - Shoot sequence
         joystick.leftTrigger().whileTrue(shootSequence());
@@ -175,9 +170,10 @@ public class RobotContainer {
         );
 
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
+
+        // Back/Start - Manual pivot up/down
+        joystick.back().whileTrue(intake.pivotUpCommand());
+        joystick.start().whileTrue(intake.pivotDownCommand());
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -194,11 +190,11 @@ public class RobotContainer {
 
     private Command shootSequence() {
         return Commands.parallel(
-            intake.setPivotAngle(Degrees.of(59)),
+            intake.pivotMidCommand(),
             shooter.shootBothCommand(ShooterSubsystem.DEFAULT_SHOOT_RPM),
             Commands.waitSeconds(1.0)
                 .andThen(Commands.parallel(
-                    hopper.feedCommand(),
+                    hopper.pulsedFeedCommand(),
                     feeder.forwardCommand()
                 ))
         )
