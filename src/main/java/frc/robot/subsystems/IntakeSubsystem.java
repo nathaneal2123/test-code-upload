@@ -24,8 +24,8 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class IntakeSubsystem extends SubsystemBase {
 
-  private static final double INTAKE_SPEED = -0.8;
-  private static final double PIVOT_SPEED = 0.3;
+  private static final double INTAKE_SPEED = -1;
+  private static final double PIVOT_SPEED = 0.8;
 
   // --- ROLLER: Kraken X60 (TalonFX) ---
   private TalonFX rollerKraken = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
@@ -56,6 +56,10 @@ public class IntakeSubsystem extends SubsystemBase {
   public Command intakeCommand() {
     return runEnd(() -> rollerSMC.setDutyCycle(INTAKE_SPEED), () -> rollerSMC.setDutyCycle(0))
         .withName("Intake.Run");
+  }
+
+  public Command stopRollersCommand() {
+    return runOnce(() -> rollerSMC.setDutyCycle(0)).withName("Intake.StopRollers");
   }
 
   public Command ejectCommand() {
@@ -93,12 +97,12 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public Command deployAndRollCommand() {
-    return run(() -> pivotMotor.set(-PIVOT_SPEED))
+    return run(() -> pivotMotor.set(PIVOT_SPEED))
         .withTimeout(2)
         .andThen(
             runEnd(
                 () -> {
-                    pivotMotor.set(-PIVOT_SPEED);
+                    pivotMotor.set(PIVOT_SPEED);
                     rollerSMC.setDutyCycle(INTAKE_SPEED);
                 },
                 () -> {

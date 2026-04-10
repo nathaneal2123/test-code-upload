@@ -7,19 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Trench1 Start to Trench"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "stowIntake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Trench1 Return to Hub"
+            "pathName": "mid outpost"
           }
         },
         {
@@ -31,7 +19,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 3.0
+            "waitTime": 4.0
           }
         },
         {

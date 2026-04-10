@@ -80,6 +80,8 @@ public class RobotContainer {
                 .alongWith(hopper.stopCommand())
                 .alongWith(feeder.stopCommand()).asProxy());
         NamedCommands.registerCommand("shootSequence", shootSequence().asProxy());
+        NamedCommands.registerCommand("startRollers", intake.intakeCommand().asProxy());
+        NamedCommands.registerCommand("stopRollers", intake.stopRollersCommand().asProxy());
 
         // Bind EventTrigger for path event markers (fires when robot reaches marker during path)
         new EventTrigger("deployIntake").onTrue(intake.deployAndRollCommand());
